@@ -11,27 +11,42 @@ In case there would be developed any universal templates that can be easily impo
 One of the goals is to achieve something like following view with `zabbix` + `windows performance counters` + `go-zabbix-mssql` + `grafana`
 ![telegraf-sqlserver-full](https://cloud.githubusercontent.com/assets/16494280/12591426/fa2b17b4-c467-11e5-9c00-929f4c4aea57.png)
 
-## Usage
+## How to cook
 
-1. With just one config YAML file, go-zabbix-mssql allows to send (almost?) endless list of queries that is joining with `UNION ALL` before SQL engine get it. So technically any number of lines in YAML still produces just one query, amirite? Be careful about response time for final big query!
-1. You **must** use command line flags to tune few details for zabbix-sender part:
-    * **-U** -- login for MS SQL connection
-    * **-P** -- password for MS SQL connection
-    * **-S** -- connection string in `server_name[\instance_name]` format
-    * **-Z** -- zabbix-server FQDN where proper trapper items live
-    * **-H** -- MS SQL Instance hostname, as it named in zabbix-server
-    * **-F** -- full path to config YAML file, like `go-zabbix-mssql.config.yaml`
-1. go-zabbix-mssql can (and intended to) be easily used as part of zabbix-agent:
-    * make sure, you have `UnsafeUserParameters=1` in `zabbix_agentd.conf`
-    * also add something like `UserParameter=mssql.metrics[*],${zabbix-agent\scripts}\go-zabbix-mssql.exe -U=$1 -P=$2 -S=$3 -Z=$4 -H=$5 -F="${full path to YAML config}"`
-    * configure proper Macros details (in Zabbix console) to every monitored host (read official guide for `UnsafeUserParameters`) which gonna replace all those `$1`, `$2` and so on... In my case, part of Macroses belongs to 'MS SQL Template' template and part of it defined manually for each Instance.
-    * add items to your template/host with type `Zabbix trapper`
-    * add and use item with key `mssql.metrics` on each MS SQL Instance, configured as `Host`.
-         * That's how you will control frequency of metrics gathering and how many of them was sent successfully.
-         * It also retrieves values of Macroses for every host, so you get most control of how your monitoring configured on zabbix-server side 
-1. Execution of code returns decimal number -- it shows how much of all collected metrics was not received correctly by zabbix-server. So perfect return must be `0`.
+With just one config YAML file, go-zabbix-mssql allows you to send (almost?) endless list of queries that is joining with `UNION ALL` before SQL engine get it. So technically any number of lines in YAML still produces just one query, amirite? Be careful about response time for final big query!
 
-> TL;DR: You can notice that some part of metrics (last one monstrous query for now) from examples got also dynamic parts that returns metrics for each DB, not for whole Instance. If it is a goal for you (it is for me), it can be used with help of [popular method of MS SQL monitoring](https://share.zabbix.com/databases/microsoft-sql-server/template-app-ms-sql-default-installation-lld) by [Stephen Fritz](https://share.zabbix.com/owner/g_111769865974589121086). This solution collects data by LLD via WMI with PowerShell script. You receive an array `{#DBS}` with names of DBs as result. **Important to notice** - attached setup guide suggests to cut off system DBs from that LLD with *regular expression filter*. In case you planning to use go-zabbix-mssql for metrics of every table, do not implement this step.    
+### Running
+
+You **must** use command line flags to tune few details for zabbix-sender part:
+* **-U** -- login for MS SQL connection
+* **-P** -- password for MS SQL connection
+* **-S** -- connection string in `server_name[\instance_name]` format
+* **-Z** -- zabbix-server FQDN where proper trapper items live
+* **-H** -- MS SQL Instance hostname, as it named in zabbix-server
+* **-F** -- full path to config YAML file, like `go-zabbix-mssql.config.yaml`
+
+### Setting up Zabbix Agent
+
+go-zabbix-mssql can (and intended to) be easily used as part of zabbix-agent:
+
+* add compiled binary to your `${zabbix-agent\scripts}` or whatever path you use to store extensions in your zabbix-agent distributive
+* make sure, you have `UnsafeUserParameters=1` in `zabbix_agentd.conf`
+* also add something like `UserParameter=mssql.metrics[*],${zabbix-agent\scripts}\go-zabbix-mssql.exe -U=$1 -P=$2 -S=$3 -Z=$4 -H=$5 -F="${full path to YAML config}"`
+
+### Setting up Zabbix Server
+
+* configure proper Macros details (in Zabbix console) to every monitored host (read official guide for `UnsafeUserParameters`) which gonna replace all those `$1`, `$2` and so on... In my case, part of Macroses belongs to 'MS SQL 2012 Template' template and part of it defined manually for each Instance.
+* add items to your template/host with type `Zabbix trapper`. Keys must be equal to metric name you await to receive
+* add and use item of `Zabbix agent` type with key `mssql.metrics` on each MS SQL Instance, configured as `Host` or in general template for MS SQL Instances 
+     * that's how you will control frequency of metrics gathering
+     * this configuration also sends values of Macroses for every host, so you get most control of how your monitoring configured on zabbix-server side 
+     * execution of binary returns decimal number -- it shows how much of all collected metrics was not received correctly by zabbix-server. So perfect return must be `0` and that what would be self metric for go-zabbix-mssql (in case of troubles, answer will become text of error)
+
+### Getting metrics for exact DBs 
+
+TL;DR: You can notice that some part of metrics (last one monstrous query for now) from examples got also dynamic parts that returns metrics for each DB, not for whole Instance. If it is a goal for you (it is for me), it can be used with help of [popular method of MS SQL monitoring](https://share.zabbix.com/databases/microsoft-sql-server/template-app-ms-sql-default-installation-lld) by [Stephen Fritz](https://share.zabbix.com/owner/g_111769865974589121086).
+
+This solution collects data by LLD via WMI with PowerShell script. You receive an array `{#DBS}` with names of DBs as result. **Important to notice** - attached setup guide suggests to cut off system DBs from that LLD with *regular expression filter*. In case you planning to use go-zabbix-mssql for metrics of every table, do not implement this step.    
 
 ## Notes
 

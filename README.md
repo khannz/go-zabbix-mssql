@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/khannz/go-zabbix-mssql.svg?branch=master)](https://travis-ci.org/khannz/go-zabbix-mssql)
+
 # go-zabbix-mssql
 
 ## Intro

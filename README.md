@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/khannz/go-zabbix-mssql.svg?branch=master)](https://travis-ci.org/khannz/go-zabbix-mssql)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/khannz/go-zabbix-mssql/master/LICENSE) [![Build Status](https://travis-ci.org/khannz/go-zabbix-mssql.svg?branch=master)](https://travis-ci.org/khannz/go-zabbix-mssql) [![Go Report Card](https://goreportcard.com/badge/github.com/khannz/go-zabbix-mssql)](https://goreportcard.com/report/github.com/khannz/go-zabbix-mssql)
 
 # go-zabbix-mssql
 
